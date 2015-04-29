@@ -165,12 +165,6 @@ class Viewport(object):
     return 1 - 9 / (9 + self.scale_func(t) / self.scale_func(0))
 
 
-def to_nparray(surface):
-  im = 0 + numpy.frombuffer(surface.get_data(), numpy.uint8)
-  im.shape = (surface.get_height(), surface.get_width(), 4)
-  return im[:,:,[2,1,0]]  # put RGB back in order
-
-
 class Renderer(object):
   def __init__(self):
     self._width = 3840
@@ -194,6 +188,11 @@ class Renderer(object):
 
     return surface, context
 
+  def _to_nparray(surface):
+    im = 0 + numpy.frombuffer(surface.get_data(), numpy.uint8)
+    im.shape = (surface.get_height(), surface.get_width(), 4)
+    return im[:,:,[2,1,0]]  # put RGB back in order
+
   def make_frame(self, t):
     surface, context = self._init_cairo()
     self._viewport.apply(context, t)
@@ -202,7 +201,7 @@ class Renderer(object):
     self._figure.draw(context, self._viewport.time_func(t))
     context.stroke()
 
-    return to_nparray(surface)
+    return self._to_nparray(surface)
 
 
 renderer = Renderer()
