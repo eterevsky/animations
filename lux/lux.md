@@ -178,26 +178,26 @@ specifying the parameter type, LuxRender can handle new plugins in a uniform
 way, allowing developers to realise new features quicker. To reiterate, the
 parameter types are:
 
-  * **integer** - a whole number: 1, 2, 3 ...
+* **integer** - a whole number: 1, 2, 3 ...
 
-  * **float** - a number with a decimal point: `[1.67]`, `[2.54]` ...
-    *(Note the square brackets given around the values.)*
+* **float** - a number with a decimal point: `[1.67]`, `[2.54]` ...
+  *(Note the square brackets given around the values.)*
 
-  * **point** - declares a point, given by three floating point values
-    `[45.000 12.000 0.900]`
+* **point** - declares a point, given by three floating point values
+  `[45.000 12.000 0.900]`
 
-  * **vector** - a vector, specified the same way as a point.
-    `[12.000 3.120 1.100]`
+* **vector** - a vector, specified the same way as a point.
+  `[12.000 3.120 1.100]`
 
-  * **normal** - a normal (unit vector). same as a point.
+* **normal** - a normal (unit vector). same as a point.
 
-  * **color** - RGB color [r g b] expressed in decimal notation
-    `[0.123 1.0 0.245]`
+* **color** - RGB color [r g b] expressed in decimal notation
+  `[0.123 1.0 0.245]`
 
-  * **bool** - boolean `["true"]`, `["false"]`
+* **bool** - boolean `["true"]`, `["false"]`
 
-  * **string** - string, non-escaped, surrounded by quotes `"simple.exr"`,
-    `"lux.png"`.
+* **string** - string, non-escaped, surrounded by quotes `"simple.exr"`,
+  `"lux.png"`.
 
 Arrays are created by specifying more than one value inside brackets, separated
 by space. So a point or a vector is actually an array of floats. In this
@@ -276,67 +276,7 @@ Adjusts the size of an entity by a given factor.
 
 Scales in the X-direction to 10%, the Y-direction to 20%, and the Z-direction to
 30%
-
-* **Translate**
-
-Moves an entity in a given direction by a vector.
-
-    Translate 10.1 20.2 30.3
-
-Moves the center 10.1 units in the X-direction, 20.2 in the Y-direction, and
-30.3 in the Z-direction
-
-* **Transform**
-
-Replaces the current transformation with the given transform. It takes a single
-16-element array as parameter, each element corresponds to an item in a 4x4
-matrix, column by column. The last column, and thus last 4 values, typically
-holds the translation part.
-
-    Transform [ 2.0  0.0  0.0  0.0
-                0.0  2.0  0.0  0.0
-                0.0  0.0  2.0  0.0
-               -3.0  2.0 -1.0  1.0]
-
-Replaces the current transform with one that scales the object by 2 and
-translates it by -3.0 along the X-direction, 2.0 along the Y-direction and -1.0
-along the Z-direction.
-
-*  **ConcatTransform**
-
-Similar to Transform, except concatenates (right multiplies) the given transform with the current transform.
-
-*  **Lookat**
-
-The LookAt transformation takes 3 vectors as parameters. The first vector (0 0 0
-in the example) is the position of the camera. The second vector (0 1 0) is the
-position of the target of the camera. The last vector (0 0 1) is the up vector.
-This is quite a simple transformation, which allows you to specify 2 points, one
-where the camera is located and another point of 'interest'.
-
-    LookAt 0 0 0  0 1 0  0 0 1
-
-Orients the entity such that it is located at the origin and looking in the +Y
-direction, with +Z as up. The up vector is a unit vector which defines how the
-camera is help up, it should point upwards of your camera, eg if it is held
-straight, it will be 0 0 1 (+Z up)
-
-* **CoordSysTransform**
-
-Replaces the current transformation by a named transformation defined earlier
-using CoordinateSystem.
-
-    CoordSysTransform "mytransform"`
-
-Alternatively you can use a transformation matrix within an Attribute or Object
-block:
-
-    Transform [scale_x 0.0 0.0 0.0
-               0.0 scale_y 0.0 0.0
-               0.0 0.0 scale_z 0.0
-               move_x move_y move_z 1.0]
-
-Motion Blur
+Motion blur
 ===========
 
 LuxRender includes a system for motion blur of camera and object transforms.
@@ -470,7 +410,8 @@ This allows instancing of portal geometry.
 Using the attributes
 --------------------
 
-To give an idea on some more complex uses of these statements, here's an example a motion blurred light with nested instances.
+To give an idea on some more complex uses of these statements, here's an example
+a motion blurred light with nested instances.
 
     # Define a named light object. It is not yet included in the scene.
     ObjectBegin "test"
@@ -518,80 +459,143 @@ Each of these shall be covered in turn.
 Camera
 ------
 
-The following camera types are available. Each of them is a plugin. The default camera type is 'perspective'.
+The following camera types are available. Each of them is a plugin. The default
+camera type is 'perspective'.
 
 -   **perspective** (default)
 
-The most common camera, resemble most closely what is seen by the human eye or a pinhole camera.
+The most common camera, resemble most closely what is seen by the human eye or a
+pinhole camera.
 
 -   **environment**
 
-Denotes a type of camera which maps the whole of the environment around the camera to an image.
+Denotes a type of camera which maps the whole of the environment around the
+camera to an image.
 
 -   **orthographic**
 
-The standard orthographic camera: parallel lines stay parallel and a sense of depth is lost.
+The standard orthographic camera: parallel lines stay parallel and a sense of
+depth is lost.
 
 -   **realistic**
 
-A physically-based camera model that loads lens descriptions files to realistically generate camera rays and weights.
+A physically-based camera model that loads lens descriptions files to
+realistically generate camera rays and weights.
 
 ### Common Camera Parameters
 
-There are parameters specific to a particular camera implementation and general parameters for all cameras. Here are the common parameters:
+There are parameters specific to a particular camera implementation and general
+parameters for all cameras. Here are the common parameters:
 
-  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  name               type       description                                                                                                                                                                          default value                    theoretical range                                              suggested range
-  ------------------ ---------- ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ -------------------------------- -------------------------------------------------------------- -----------------------------------------------------------
-  hither             float      Geometry closer than this distance will not be rendered                                                                                                                              10\^{-3}                         0 - ∞                                                          0 - 10 000
+- **hither** (float)
 
-  yon                float      Geometry further than this distance will not be rendered                                                                                                                             10\^{30}                         0 - ∞                                                          0 - 10 000 (always bigger than hither)
+Geometry closer than this distance will not be rendered. Default:
+10<sup>-3</sup>. Range: >= 0. Suggested range: 0–10000
 
-  shutteropen        float      The time in seconds at which the virtual shutter opens                                                                                                                               0.0                                                                                             0
+- **yon** (float)
 
-  shutterclose       float      The time in seconds at which the virtual shutter closes                                                                                                                              1.0                                                                                             0.001 - 1, larger (1-60 or more) for "long exposure" blur
+Geometry further than this distance will not be rendered. Default:
+10<sup>30</sup>.  Range: >= 0, should be bigger than `hither`.
 
-  lensradius         float      Default (0) for pinhole camera with whole scene in focus, increase for depth of field and focus effects. Ignored by environment and realistic cameras                                0.0                              0 - ∞                                                          0 - 1
+- **shutteropen** (float)
 
-  focaldistance      float      Focal distance of the virtual lens. Use the control focus in depth of field effects. Ignored by environment and realistic cameras                                                    10\^{30}                         0 - ∞                                                          0 - 10 000
+The time in seconds at which the virtual shutter opens. Default: 0. Suggested
+range: 0–1.
 
-  frameaspectratio   float      This is normally computed from resolution but can be overridden here. Ignored by realistic camera                                                                                    computed from given resolution   0 - ∞                                                          1 - 10
+- **shutterclose** (float)
 
-  screenwindow       float[4]   Specifies area in camera that the virtual film occupies - the bounds in screen space. Crops the camera viewport. (*Ignored by realistic camera.*) Values are: xmin xmax ymin ymax.   entire screen space              dependent on frame aspect ratio (xresolution/yresolution): \
-                                                                                                                                                                                                                                                      If aspect\_ratio \> 1: -aspect\_ratio aspect\_ratio -1 1\
-                                                                                                                                                                                                                                                      Otherwise: -1 1 -1/aspect\_ratio 1/aspect\_ratio
-  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+The time in seconds at which the virtual shutter closes. Default: 1.0. Suggested
+range: 0.001–1, larger (1–60 or more) for "long exposure" blur.
 
-### Specific Camera Parameters
+- **lensradius** (float)
 
-'environment' cameras do \*not\* support depth of field parameters lensradius and focaldistance as indicated above. 'realistic' cameras don't support lensradius, focaldistance, frameaspectratio and screenwindow either. The orthographic camera supports the above parameters, but has no others. However, the 'perspective' and 'realistic' cameras do have some specific parameters:
+Default (0) for pinhole camera with whole scene in focus, increase for depth of
+field and focus effects. Ignored by environment and realistic cameras. Range:
+>= 0. Suggested range: 0–1.
 
-#### perspective
+- **focaldistance** (float)
 
-  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  name            type      description                                                                                                                                                                                                                                    default value   theoretical range   suggested range
-  --------------- --------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- --------------- ------------------- -----------------
-  fov             float     This is the field of view for the camera - this specifies the solid angle viewed. The fov value is the angle spanned by the **smallest** dimension of the image (width/height). An fov of 49.13 is equal to a focal length of 35mm.            90              0 < x < 180         1 - 179
+Focal distance of the virtual lens. Use the control focus in depth of field
+effects. Ignored by environment and realistic cameras. Default: 10<sup>30</sup>.
+Range: >= 0.
 
-  lensradius      float     This value defines the lens radius. Values higher than 0 enable DOF and control its amount. To calculate the lensradius based on the f/stop number use the following equation.\                                                                0.00625         x ≥ 0               0 - 0.4
-                             lensradius = (focallength\_in\_mm / 1000.0) / ( 2.0 \* fstop )\
-                            \
-                             Example: 0.00625 = (35 / 1 000.0) / (2.0 \* 2.8)
+- **frameaspectratio** (float)
 
-  autofocus       bool      Enable/disable the autofocus feature. It is useful to automatically calculate the focal distance when lens radius \> 0.0 (i.e. depth of field enabled).                                                                                        false
+This is normally computed from resolution but can be overridden here. Ignored by
+realistic camera computed from given resolution. Range: >= 0.
 
-  focaldistance   float     This value controls the focal point of the scene, the distance from the camera at which objects will be in focus. It has no effect if the Lens Radius is set to 0. It is specified in meters. This value is not needed when using autofocus.   0.0             0 < x               0 - 200
+- **screenwindow** (float[4])
 
-  blades          integer   This value controls the number of blade edges of the aperture, values 0 to 2 defaults to a circle.                                                                                                                                             6
+Specifies area in camera that the virtual film occupies — the bounds in screen
+space. Crops the camera viewport. *(Ignored by realistic camera.)* Values are:
+`xmin xmax ymin ymax`. Entire screen space dependent on frame aspect ratio
+(xresolution/yresolution). If `aspect_ratio > 1`: `-aspect_ratio aspect_ratio -1
+1`. Otherwise: `-1 1 -1/aspect_ratio 1/aspect_ratio`.
 
-  distribution    string    This value controls the lens sampling distribution. Non-uniform distributions allow for ring effects. Valid values include: "uniform", "exponential", "inverse exponential", "gaussian", and "inverse gaussian".                               uniform
+### Specific camera parameters
 
-  power           integer   This value controls the exponent for the expression in exponential distribution. Higher values gives a more pronounced ring effect.                                                                                                            1
-  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+'environment' cameras do *not* support depth of field parameters `lensradius`
+and `focaldistance` as indicated above. 'realistic' cameras don't support
+lensradius, focaldistance, frameaspectratio and screenwindow either. The
+orthographic camera supports the above parameters, but has no others. However,
+the 'perspective' and 'realistic' cameras do have some specific parameters:
 
-#### realistic
+#### `perspective`
 
-This camera type is not currently functional and should thus not be present in the user interface.
+- **fov** (float)
+
+This is the field of view for the camera — this specifies the solid angle
+viewed. The fov value is the angle spanned by the *smallest* dimension of the
+image (width/height). An fov of 49.13 is equal to a focal length of 35mm.
+Default: 90. Range: 0–180
+
+- **lensradius** (float)
+
+This value defines the lens radius. Values higher than 0 enable DOF and control
+its amount. To calculate the `lensradius` based on the f/stop number use the
+following equation:
+
+    lensradius = (focallength_in_mm / 1000.0) / (2.0 * fstop)
+
+Example:
+
+    0.00625 = (35 / 1 000.0) / (2.0 * 2.8)
+
+Default: 0.00625. Range: >= 0. Suggested range: 0-0.4.
+
+- **autofocus** (bool)
+
+Enable/disable the autofocus feature. It is useful to automatically calculate
+the focal distance when lens radius >0.0 (i.e. depth of field enabled). Default:
+false.
+
+- **focaldistance** (float)
+
+This value controls the focal point of the scene, the distance from the camera
+at which objects will be in focus. It has no effect if the Lens Radius is set
+to 0. It is specified in meters. This value is not needed when using autofocus.
+Default: 0. Range: >= 0. Suggested range: 0–200.
+
+- **blades** (integer)
+
+This value controls the number of blade edges of the aperture, values 0 to 2
+defaults to a circle. Default: 6.
+
+- **distribution** (string)
+
+This value controls the lens sampling distribution. Non-uniform distributions
+allow for ring effects. Valid values include: "uniform", "exponential", "inverse
+exponential", "gaussian", and "inverse gaussian". Default: "uniform".
+
+- **power** (integer)
+
+This value controls the exponent for the expression in exponential distribution.
+Higher values gives a more pronounced ring effect. Default: 1
+
+#### `realistic`
+
+This camera type is not currently functional and should thus not be present in
+the user interface.
 
   name                 type     description                                                                              default value
   -------------------- -------- ---------------------------------------------------------------------------------------- ---------------
@@ -607,23 +611,30 @@ Here are the sampler types. Each one is a separate plugin.
 
 -   **metropolis**
 
-Generates random values that are then slightly mutated, according to the Metropolis algorithm. In most cases, this sampler should be used by default.
+Generates random values that are then slightly mutated, according to the
+Metropolis algorithm. In most cases, this sampler should be used by default.
 
 -   **sobol**
 
-Progressive quasi-random sampler, uses a sobol sequence. Based on the sobol sampler in Blender Cycles. This sampler gives good results on simple scenes.
+Progressive quasi-random sampler, uses a sobol sequence. Based on the sobol
+sampler in Blender Cycles. This sampler gives good results on simple scenes.
 
 -   **random** (default)
 
-Completely random sampler. Set to default as a fallback, not production-useful in most cases.
+Completely random sampler. Set to default as a fallback, not production-useful
+in most cases.
 
 -   **lowdiscrepancy**
 
-Generates a low discrepancy sequence that evenly samples values, given a target number of samples per pixel (must be a power of 2). In most cases, the sobol sampler will yeild better results due to its progressive sample stratification.
+Generates a low discrepancy sequence that evenly samples values, given a target
+number of samples per pixel (must be a power of 2). In most cases, the sobol
+sampler will yeild better results due to its progressive sample stratification.
 
 -   **erpt**
 
-Similar to the Metropolis sampler but the *Energy Redistribution Path Tracing* algorithm is used. This sampler is largely a failed science experiment and shouldn't be used.
+Similar to the Metropolis sampler but the *Energy Redistribution Path Tracing*
+algorithm is used. This sampler is largely a failed science experiment and
+shouldn't be used.
 
 ### Noise-aware sampling
 

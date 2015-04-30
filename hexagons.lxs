@@ -1,14 +1,14 @@
 LookAt 0 -10 0  0 0 0  0 0 1
 Camera "perspective" "float fov" [30]
 Film "fleximage"
-"integer xresolution" [200] "integer yresolution" [200]
-"bool write_png_16bit" ["true"] "integer haltspp" [1000]
-"string filename" ["out/hexagons"]
+		"integer xresolution" [200] "integer yresolution" [200]
+		"bool write_png_16bit" ["true"] "integer haltspp" [1000]
+		"string filename" ["out/hexagons"]
 
 WorldBegin
 
 AttributeBegin
-	AreaLightSource "area" "color L" [1 1 1] "integer nsamples"  [20]
+	AreaLightSource "area" "rgb L" [1 1 1] "integer nsamples"  [20]
 	Translate 2 -11 1
 	Rotate -90 1 0 0
 	Shape "disk" "float radius" [2]
