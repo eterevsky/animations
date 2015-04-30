@@ -1,18 +1,22 @@
-LookAt 0 -10 0  0 0 0  0 0 1
+LookAt 0 0 10  0 0 0  0 1 0
 Camera "perspective" "float fov" [30]
+
 Film "fleximage"
-		"integer xresolution" [200] "integer yresolution" [200]
-		"bool write_png_16bit" ["true"] "integer haltspp" [1000]
-		"string filename" ["out/hexagons"]
+		"integer xresolution" [300] "integer yresolution" [200]
+		"integer haltspp" [30] "string filename" ["out/hexagons"]
 
 WorldBegin
 
 AttributeBegin
-	AreaLightSource "area" "rgb L" [1 1 1] "integer nsamples"  [20]
-	Translate 2 -11 1
-	Rotate -90 1 0 0
+	AreaLightSource "area" "color L" [1 1 1]
+	Translate 2 1 11
+	Rotate 180 1 0 0
 	Shape "disk" "float radius" [2]
 AttributeEnd
+
+MakeNamedMaterial "hex0" "string type" "matte" "color Kd" [0.902 0.29 0.098]
+MakeNamedMaterial "hex1" "string type" "matte" "color Kd" [0.38 0.38 0.38]
+MakeNamedMaterial "hex2" "string type" "matte" "color Kd" [0.271 0.353 0.392]
 
 Include "out/hexagons-geom.lxo"
 
