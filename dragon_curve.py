@@ -188,7 +188,7 @@ class Renderer(object):
 
     return surface, context
 
-  def _to_nparray(surface):
+  def _to_nparray(self, surface):
     im = 0 + numpy.frombuffer(surface.get_data(), numpy.uint8)
     im.shape = (surface.get_height(), surface.get_width(), 4)
     return im[:,:,[2,1,0]]  # put RGB back in order
@@ -209,5 +209,5 @@ renderer = Renderer()
 #audio = mpy.AudioFileClip('dust.mp3')
 clip = mpy.VideoClip(renderer.make_frame, duration=renderer.duration)
 #cc = mpy.CompositeVideoClip([clip, audio])
-clip.write_videofile('dragon4k.mp4', fps=renderer.fps, audio=False)
+clip.write_videofile('out/dragon4k.mp4', fps=renderer.fps, audio=False)
 # clip.write_gif("dragon.gif", fps=renderer.fps)
