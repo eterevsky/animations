@@ -3,7 +3,17 @@ import cairocffi as cairo
 from math import cos, exp, log, sin, sqrt
 import moviepy.editor as mpy
 import numpy
+import os
+from queue import Queue
 from scipy import optimize
+import shutil
+import sys
+import tempfile
+import threading
+
+DURATION = 40
+FPS = 60
+PROCESSES = 4
 
 
 class Figure(object):
@@ -166,10 +176,10 @@ class Viewport(object):
 
 
 class Renderer(object):
-  def __init__(self):
-    self._width = 3840
-    self._height = 2160
-    self.duration = 45
+  def __init__(self, duration=40):
+    self._width = 1920
+    self._height = 1080
+    self.duration = duration
     self.fps = 60
     self._figure = Figure()
     self._viewport = Viewport(self._figure, self._width, self._height)
@@ -193,21 +203,74 @@ class Renderer(object):
     im.shape = (surface.get_height(), surface.get_width(), 4)
     return im[:,:,[2,1,0]]  # put RGB back in order
 
-  def make_frame(self, t):
+  def make_frame(self, t, to_file=None):
     surface, context = self._init_cairo()
     self._viewport.apply(context, t)
     context.set_line_width(self._viewport.line_width_func(t))
 
     self._figure.draw(context, self._viewport.time_func(t))
     context.stroke()
+    
+    if to_file is None:
+      return self._to_nparray(surface)
+    surface.write_to_png(target=to_file) 
 
-    return self._to_nparray(surface)
+
+def render_thread(renderer, queue, done_queue):
+  while True:
+    job = queue.get()
+    if job == 'STOP':
+      return
+    filename, t = job
+    renderer.make_frame(t, filename)
+    done_queue.put(t)
 
 
-renderer = Renderer()
+def write_frames(directory, duration, fps):
+  print('Preparing renderer.')
+  renderer = Renderer()
+  queue = Queue()
+  done_queue = Queue()
+  processes = []
+  print('Starting {} threads.'.format(PROCESSES))
+  for i in range(PROCESSES):
+    thread = threading.Thread(
+        target=render_thread, args=(renderer, queue, done_queue))
+    thread.start()
+    processes.append(thread)
+  
+  filenames = []
+  for f in range(duration * fps):
+    filename = os.path.join(directory, 'frame{}.png'.format(f))
+    queue.put((filename, f / fps))
+    filenames.append(filename)
+  
+  print('{} jobs queued.'.format(duration * fps))
+  
+  done = 0
+  while done < duration * fps:
+    done_job = done_queue.get()
+    done += 1
+    sys.stdout.write('\rCompleted images: {}/{}'.format(done, duration * fps))
+    sys.stdout.flush()
+  print()
+
+  print('Stopping child processes.')  
+  for p in processes:
+    queue.put('STOP')
+  for p in processes:
+    p.join()
+  return filenames
+
+
+directory = tempfile.mkdtemp()
+print('Created temporary directory: {}'.format(directory))
+files = write_frames(directory, DURATION, FPS)
 
 #audio = mpy.AudioFileClip('dust.mp3')
-clip = mpy.VideoClip(renderer.make_frame, duration=renderer.duration)
-#cc = mpy.CompositeVideoClip([clip, audio])
-clip.write_videofile('out/dragon4k.mp4', fps=renderer.fps, audio=False)
-# clip.write_gif("dragon.gif", fps=renderer.fps)
+#clip = mpy.VideoClip(renderer.make_frame, duration=renderer.duration)
+clip = mpy.ImageSequenceClip(files, fps=FPS)
+clip.write_videofile('out/dragon1080.mp4', fps=FPS, audio=False)
+# clip.write_gif("dragon.gif", fps=FPS)
+
+shutil.rmtree(directory)
