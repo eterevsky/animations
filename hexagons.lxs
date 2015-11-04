@@ -3,7 +3,7 @@ Camera "perspective" "float fov" [30]
 
 Film "fleximage"
 		"integer xresolution" [300] "integer yresolution" [200]
-		"integer haltspp" [30] "string filename" ["out/hexagons"]
+		"integer haltspp" [300] "string filename" ["out/hexagons"]
 
 WorldBegin
 
