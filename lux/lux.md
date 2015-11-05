@@ -276,6 +276,7 @@ Adjusts the size of an entity by a given factor.
 
 Scales in the X-direction to 10%, the Y-direction to 20%, and the Z-direction to
 30%
+
 Motion blur
 ===========
 
