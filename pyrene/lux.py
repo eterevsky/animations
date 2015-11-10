@@ -4,16 +4,10 @@ import os
 import subprocess
 import tempfile
 
-
-def npvector(s):
-  return np.array(s, dtype='float64')
+from . import scene
 
 
-ZERO = npvector((0, 0, 0))
-
-
-def space_separated(v):
-  return ' '.join(map(str, v))
+ZERO = scene.npvector((0, 0, 0))
 
 
 class LuxIdentifier(object):
@@ -24,7 +18,8 @@ class LuxIdentifier(object):
 
   def __call__(self, *args, **kwargs):
     s = self._name
-    logging.debug('Creating luxrender identifier %s %s %s', self._name, args, kwargs)
+    logging.debug('Creating luxrender identifier %s %s %s',
+                  self._name, args, kwargs)
     assert len(args) == len(self._positional)
     for t, arg in zip(self._positional, args):
       if t == 'integer':
@@ -48,7 +43,6 @@ class LuxIdentifier(object):
       elif t == 'float':
         s += ' [{:f}]'.format(v)
       elif t in ('point', 'vector', 'normal', 'color'):
-        logging.debug('Vector parameter: %s', v)
         s += ' [' + ' '.join('{:f}'.format(a) for a in v) + ']'
       elif t == 'bool':
         s += ' ["true"]' if v else '  ["false"]'
@@ -160,7 +154,7 @@ class LuxRenderer(object):
     if obj.light is not None:
       writer.write(_area_light_source('area', L=obj.light.color))
 
-    if obj.otype == 'sphere':
+    if isinstance(obj, scene.Sphere):
       if not np.array_equal(obj.center, ZERO):
         writer.write(_translate(obj.center))
       writer.write(_shape("sphere", radius=obj.radius))
@@ -171,13 +165,11 @@ class LuxRenderer(object):
 
   def _write_scene_file(self, scene, scene_file):
     with LuxFileWriter(scene_file) as writer:
-      if self.output_file.endswith('.png'):
-        self.output_file = self.output_file[:-4]
       writer.write(_look_at(scene.camera.loc, scene.camera.to, scene.camera.up))
       writer.write(_film(
           'fleximage',
           xresolution=self.width, yresolution=self.height,
-          haltspp=self.samples_per_pixel, filename=self.output_file))
+          haltspp=self.samples_per_pixel))
       writer.write(_camera('perspective', fov=scene.camera.fov))
 
       writer.begin_block('World')
@@ -186,44 +178,18 @@ class LuxRenderer(object):
       writer.end_block('World')
 
   def _run_renderer(self, scene_file):
+    logging.debug('Output file: `%s`', self.output_file)
+    if self.luxconsole is None:
+      logging.error(
+          'Trying to call LuxRender, but path to luxconsole is not specified.')
+    assert self.luxconsole is not None
     args = [self.luxconsole, scene_file]
+    if self.output_file:
+      args.append('-o')
+      if self.output_file.endswith('.png'):
+        output = self.output_file[:-4]
+      else:
+        output = self.output_file
+      args.append(os.path.abspath(output))
     logging.info('Running %s', ' '.join(args))
     subprocess.call(args)
-
-
-class Camera(object):
-  def __init__(self, fov=30, loc=(0, -1, 0), to=(0, 0, 0), up=(0, 0, 1)):
-    self.fov = fov
-    self.loc = npvector(loc)
-    self.to = npvector(to)
-    self.up = npvector(up)
-
-
-class AreaLight(object):
-  def __init__(self, color=(1, 1, 1)):
-    self.color = npvector(color)
-
-
-class Object(object):
-  def __init__(self, light=None):
-    self.light = light
-
-
-class Sphere(Object):
-  def __init__(self, center=(0, 0, 0), radius=1, **kwargs):
-    super().__init__(**kwargs)
-    self.otype = 'sphere'
-    self.center = npvector(center)
-    self.radius = radius
-
-
-class Scene(object):
-  def __init__(self):
-    self.camera = Camera()
-    self.objects = []
-
-
-if __name__ == '__main__':
-  logging.basicConfig(level=logging.DEBUG)
-  renderer = LuxRenderer()
-  renderer.render(None)
