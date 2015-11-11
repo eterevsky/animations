@@ -210,10 +210,10 @@ class Renderer(object):
 
     self._figure.draw(context, self._viewport.time_func(t))
     context.stroke()
-    
+
     if to_file is None:
       return self._to_nparray(surface)
-    surface.write_to_png(target=to_file) 
+    surface.write_to_png(target=to_file)
 
 
 def render_thread(renderer, queue, done_queue):
@@ -238,15 +238,15 @@ def write_frames(directory, duration, fps):
         target=render_thread, args=(renderer, queue, done_queue))
     thread.start()
     processes.append(thread)
-  
+
   filenames = []
   for f in range(duration * fps):
     filename = os.path.join(directory, 'frame{}.png'.format(f))
     queue.put((filename, f / fps))
     filenames.append(filename)
-  
+
   print('{} jobs queued.'.format(duration * fps))
-  
+
   done = 0
   while done < duration * fps:
     done_job = done_queue.get()
@@ -255,7 +255,7 @@ def write_frames(directory, duration, fps):
     sys.stdout.flush()
   print()
 
-  print('Stopping child processes.')  
+  print('Stopping child processes.')
   for p in processes:
     queue.put('STOP')
   for p in processes:
