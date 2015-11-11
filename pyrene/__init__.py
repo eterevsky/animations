@@ -15,6 +15,7 @@ class Movie(object):
     self.fps = fps
     self.dir = tempfile.TemporaryDirectory()
     self.frames = []
+    self.scenes = []
     logging.info('Created a temporary directory %s for frame images.',
                  self.dir.name)
 
@@ -27,10 +28,15 @@ class Movie(object):
     for f in range(int(math.ceil((end - start) * self.fps))):
       frame_path = os.path.join(self.dir.name,
                                 'f{:05}.png'.format(len(self.frames)))
+      scene_path = os.path.join(self.dir.name,
+                                'f{:05}.lxs'.format(len(self.scenes)))
+      self.scenes.append(scene_path)
       self.frames.append(frame_path)
       self.renderer.output_file = frame_path
+      self.renderer.scene_file = scene_path
       scene = frame_func(start + f / self.fps)
-      self.renderer.render(scene, generate_only=False)
+      self.renderer.render(scene, generate_only=True)
+    self.renderer.batch_render(self.scenes)
 
   def write(self, output):
     clip = mpy.ImageSequenceClip(self.frames, fps=self.fps)

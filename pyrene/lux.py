@@ -163,13 +163,21 @@ class LuxRenderer(object):
 
     writer.end_block('Attribute')
 
+  def _stripped_output(self):
+    if self.output_file is None:
+      return None
+    if self.output_file.endswith('.png'):
+      return self.output_file[:-4]
+    else:
+      return self.output_file
+
   def _write_scene_file(self, scene, scene_file):
     with LuxFileWriter(scene_file) as writer:
       writer.write(_look_at(scene.camera.loc, scene.camera.to, scene.camera.up))
       writer.write(_film(
           'fleximage',
           xresolution=self.width, yresolution=self.height,
-          haltspp=self.samples_per_pixel))
+          haltspp=self.samples_per_pixel, filename=self._stripped_output()))
       writer.write(_camera('perspective', fov=scene.camera.fov))
 
       writer.begin_block('World')
@@ -185,11 +193,20 @@ class LuxRenderer(object):
     assert self.luxconsole is not None
     args = [self.luxconsole, scene_file]
     if self.output_file:
-      args.append('-o')
-      if self.output_file.endswith('.png'):
-        output = self.output_file[:-4]
-      else:
-        output = self.output_file
-      args.append(os.path.abspath(output))
+      args.extend(['-o', os.path.abspath(outputself._stripped_output())])
+    logging.info('Running %s', ' '.join(args))
+    subprocess.call(args)
+
+  def batch_render(self, scene_files):
+    logging.info('Rendering %d files', len(scene_files))
+    if self.luxconsole is None:
+      logging.error(
+          'Trying to call LuxRender, but path to luxconsole is not specified.')
+    assert self.luxconsole is not None
+    list_file = tempfile.mkstemp()[1]
+    lf = open(list_file, 'w+')
+    lf.write('\n'.join(scene_files))
+    lf.close()
+    args = [self.luxconsole, '-L', list_file]
     logging.info('Running %s', ' '.join(args))
     subprocess.call(args)
