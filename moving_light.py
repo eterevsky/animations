@@ -19,7 +19,8 @@ def gen_frame(t):
 
 
 def main():
-  renderer = pyrene.LuxRenderer(luxconsole=LUX_PATH, samples_per_pixel=20, width=1280, height=720)
+  renderer = pyrene.LuxRenderer(
+      luxconsole=LUX_PATH, samples_per_pixel=20, width=1280, height=720)
   movie = pyrene.Movie(renderer=renderer, fps=60)
   movie.render_clip(0.0, 4.0, gen_frame)
   movie.write('out/light2.mp4')

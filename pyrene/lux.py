@@ -81,7 +81,8 @@ _camera = LuxIdentifier(
     })
 
 _area_light_source = LuxIdentifier(
-    'AreaLightSource', positional=['string'], named={'L': 'color'})
+    'AreaLightSource', positional=['string'],
+    named={'L': 'color', 'power': 'float'})
 
 _translate = LuxIdentifier('Translate', positional=['vector'])
 
@@ -128,13 +129,15 @@ class LuxFileWriter(object):
 
 class LuxRenderer(object):
   def __init__(self, luxconsole=None, output_file=None, scene_file=None,
-               width=384, height=256, samples_per_pixel=10):
+               width=384, height=256, samples_per_pixel=10, slaves=None):
     self.luxconsole = luxconsole
     self.output_file = output_file
     self.scene_file = scene_file
     self.width = width
     self.height = height
     self.samples_per_pixel = samples_per_pixel
+    self.slaves = slaves or []
+    logging.info('__init__ slaves: %s', slaves)
 
   def render(self, scene, generate_only=False):
     scene_file = self.scene_file or tempfile.mkstemp()[1]
@@ -152,7 +155,7 @@ class LuxRenderer(object):
     writer.begin_block('Attribute')
 
     if obj.light is not None:
-      writer.write(_area_light_source('area', L=obj.light.color))
+      writer.write(_area_light_source('area', L=obj.light.color, power=obj.light.power))
 
     if isinstance(obj, scene.Sphere):
       if not np.array_equal(obj.center, ZERO):
@@ -193,7 +196,10 @@ class LuxRenderer(object):
     assert self.luxconsole is not None
     args = [self.luxconsole, scene_file]
     if self.output_file:
-      args.extend(['-o', os.path.abspath(outputself._stripped_output())])
+      args.extend(['-o', os.path.abspath(self._stripped_output())])
+    if self.slaves:
+      for s in self.slaves:
+        args.extend(['-u', s])
     logging.info('Running %s', ' '.join(args))
     subprocess.call(args)
 
@@ -207,6 +213,9 @@ class LuxRenderer(object):
     lf = open(list_file, 'w+')
     lf.write('\n'.join(scene_files))
     lf.close()
-    args = [self.luxconsole, '-L', list_file]
+    args = [self.luxconsole, '-L', list_file, '-i', '10']
+    if self.slaves:
+      for s in self.slaves:
+        args.extend(['-u', s])
     logging.info('Running %s', ' '.join(args))
     subprocess.call(args)

@@ -14,9 +14,10 @@ class Camera(object):
 
 
 class AreaLight(object):
-  def __init__(self, color=(1, 1, 1)):
+  def __init__(self, color=(1, 1, 1), power=1000.0):
     self.color = npvector(color)
-
+    self.power = power
+    
 
 class Object(object):
   def __init__(self, light=None):
