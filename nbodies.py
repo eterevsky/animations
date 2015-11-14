@@ -5,9 +5,6 @@ import numpy as np
 import pyrene
 
 
-LUX_PATH = '../lux-v1.5-x86_64-sse2-OpenCL/luxconsole'
-
-
 class Particle(object):
   def __init__(self, point, radius):
     self.location = point
@@ -102,14 +99,17 @@ def gen_frame(world, t):
 
 
 def main():
+  np.random.seed(123)
+
   world = World(100)
   world.add_particle('sun', (0, 0, 0), (0, 0, 0), 1, 10, False)
   world.add_particle('camera', (0, -50, 0), (2, 0, 0), 0, 1, False)
 
-  logging.info(world.points)
-  renderer = pyrene.LuxRenderer(
-      luxconsole=LUX_PATH, samples_per_pixel=200, width=1280, height=720)
-  scene = gen_frame(world, 0.0)
+  config_path = os.path.dirname(os.path.realpath(__file__))
+  with open(config_path) as config_file:
+    config = config_file.read()
+  renderer = pyrene.create_renderer(
+      config=config, samples_per_pixel=200, width=1280, height=720)
 
   movie = pyrene.Movie(renderer=renderer, fps=60)
   movie.render_clip(0.0, 30.0, lambda t: gen_frame(world, t))

@@ -1,3 +1,4 @@
+import json
 import logging
 import math
 import moviepy.editor as mpy
@@ -7,6 +8,27 @@ import tempfile
 
 from .lux import LuxRenderer
 from .scene import Camera, Sphere, AreaLight, Scene
+
+
+def create_renderer(renderer=None, config=None, **kwargs):
+  assert renderer is not None or config is not None
+  if isinstance(config, str):
+    config = json.loads(config)
+  if renderer is None:
+    renderer = config['renderer']
+
+  params = {}
+  if 'common' in config:
+    params.update(config['common'])
+  if renderer in config:
+    params.update(config[renderer])
+  params.update(kwargs)
+
+  logging.info('Creating a renderer %s with parameters %s', renderer, params)
+
+  if renderer == 'luxrender':
+    return LuxRenderer(**params)
+  raise Exception('Unknown renderer type: {}'.format(renderer))
 
 
 class Movie(object):

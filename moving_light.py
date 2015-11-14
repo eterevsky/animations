@@ -4,9 +4,6 @@ import math
 import pyrene
 
 
-LUX_PATH = '../lux-v1.5-x86_64-sse2-OpenCL/luxconsole'
-
-
 def gen_frame(t):
   logging.info('Generating frame for time %f', t)
   scene = pyrene.Scene()
@@ -19,8 +16,11 @@ def gen_frame(t):
 
 
 def main():
-  renderer = pyrene.LuxRenderer(
-      luxconsole=LUX_PATH, samples_per_pixel=20, width=1280, height=720)
+  config_path = os.path.dirname(os.path.realpath(__file__))
+  with open(config_path) as config_file:
+    config = config_file.read()
+  renderer = pyrene.create_renderer(
+      config=config, samples_per_pixel=20, width=1280, height=720)
   movie = pyrene.Movie(renderer=renderer, fps=60)
   movie.render_clip(0.0, 4.0, gen_frame)
   movie.write('out/light2.mp4')

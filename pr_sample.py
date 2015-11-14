@@ -6,9 +6,9 @@ import pyrene
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument('--luxrender', metavar='DIR',
-                      help='path to luxrender directory')
-  parser.add_argument('--output', '-o', default='output.png',
+  parser.add_argument('--config', metavar='FILE', default='./pyrene.json',
+                      help='pyrene renderer config')
+  parser.add_argument('--output', '-o', default='out/output.png',
                       metavar='FILE', help='output file')
   parser.add_argument('--scene', '-s', default=None,
                       help='output lxs scene file')
@@ -16,15 +16,13 @@ def main():
                       action='store_true', help='only generate the scene file')
   args = parser.parse_args()
 
-  if args.luxrender:
-    luxconsole = os.path.join(args.luxrender, 'luxconsole')
-  else:
-    luxconsole = None
+  with open(args.config) as config_file:
+    config = config_file.read()
 
-  renderer = pyrene.LuxRenderer(luxconsole=luxconsole,
-                                output_file=args.output,
-                                scene_file=args.scene,
-                                samples_per_pixel=10000)
+  renderer = pyrene.create_renderer(config=config,
+                                    output_file=args.output,
+                                    scene_file=args.scene,
+                                    samples_per_pixel=10000)
   scene = pyrene.Scene()
   scene.camera = pyrene.Camera(loc=(0, -10, 0), to=(0, 0, 0))
   scene.objects.append(pyrene.Sphere())
