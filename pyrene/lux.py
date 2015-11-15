@@ -63,6 +63,7 @@ class LuxRenderer(object):
     self.width = width
     self.height = height
     self.samples_per_pixel = samples_per_pixel
+    self.scene_file_ext = 'lxs'
     self.slaves = slaves or []
     logging.info('__init__ slaves: %s', slaves)
 

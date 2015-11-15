@@ -51,17 +51,19 @@ class Movie(object):
   def render_clip(self, start, end, frame_func):
     logging.info('Rendering a clip from %f to %f', start, end)
     for f in range(int(math.ceil((end - start) * self.fps))):
-      frame_path = os.path.join(self.dir.name,
-                                'f{:05}.png'.format(len(self.frames)))
-      scene_path = os.path.join(self.dir.name,
-                                'f{:05}.lxs'.format(len(self.scenes)))
+      frame_path = os.path.join(
+          self.dir.name,
+          'f{:05}.png'.format(len(self.frames)))
+      scene_path = os.path.join(
+          self.dir.name,
+          'f{:05}.{ext}'.format(len(self.scenes),
+                                ext=self.renderer.scene_file_ext))
       self.scenes.append(scene_path)
       self.frames.append(frame_path)
       self.renderer.output_file = frame_path
       self.renderer.scene_file = scene_path
       scene = frame_func(start + f / self.fps)
-      self.renderer.render(scene, generate_only=True)
-    self.renderer.batch_render(self.scenes)
+      self.renderer.render(scene, generate_only=False)
 
   def write(self, output):
     clip = mpy.ImageSequenceClip(self.frames, fps=self.fps)

@@ -4,7 +4,10 @@
     "slaves": []
   },
   "pbrt": {
-    "executable": "/home/aengus/pbrt-v3/build/pbrt"
+    "executable": "/home/aengus/pbrt-v3/build/pbrt",
+    "exrpptm": "exrpptm",
+    "exrnormalize": "exrnormalize",
+    "exrtopng": "exrtopng"
   },
   "renderer": "pbrt"
 }

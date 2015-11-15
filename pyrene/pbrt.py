@@ -60,13 +60,35 @@ _shape = rman.Identifier(
 
 class PbrtRenderer(object):
   def __init__(self, executable=None, output_file=None, scene_file=None,
-               width=384, height=256, samples_per_pixel=None, slaves=None):
+               width=384, height=256, samples_per_pixel=None, slaves=None,
+               exrpptm=None, exrnormalize=None, exrtopng=None):
     self.executable = executable
     self.output_file = output_file
     self.scene_file = scene_file
     self.width = width
     self.height = height
     self.samples_per_pixel = samples_per_pixel
+    self.scene_file_ext = 'pbrt'
+    self.exrpptm = exrpptm
+    self.exrnormalize = exrnormalize
+    self.exrtopng = exrtopng
+
+  @property
+  def output_file(self):
+    return self._output_file
+
+  @output_file.setter
+  def output_file(self, value):
+    logging.info('output_file = %s', value)
+    if value is None:
+      self._output_file = None
+      self._exr_file = None
+      return
+    self._output_file = value
+    base, ext = os.path.splitext(value)
+    logging.info('base = %s, ext = %s', base, ext)
+    assert ext == '.png'
+    self._exr_file = base + '.exr'
 
   def render(self, scene, generate_only=False):
     scene_file = self.scene_file or tempfile.mkstemp()[1]
@@ -102,7 +124,7 @@ class PbrtRenderer(object):
       writer.write(_film(
           'image',
           xresolution=self.width, yresolution=self.height,
-          filename=self.output_file))
+          filename=self._exr_file))
       writer.write(_camera('perspective', fov=scene.camera.fov))
       if self.samples_per_pixel:
         writer.write(_sampler('lowdiscrepancy', pixelsamples=self.samples_per_pixel))
@@ -113,7 +135,6 @@ class PbrtRenderer(object):
       writer.end_block('World')
 
   def _run_renderer(self, scene_file):
-    logging.debug('Output file: `%s`', self.output_file)
     if self.executable is None:
       logging.error(
           'Trying to call pbrt, but path to the executable is not specified.')
@@ -122,12 +143,17 @@ class PbrtRenderer(object):
     logging.info('Running %s', ' '.join(args))
     subprocess.call(args)
 
-  def batch_render(self, scene_files):
-    logging.info('Rendering %d files', len(scene_files))
-    if self.executable is None:
-      logging.error(
-          'Trying to call pbrt, but path to the executable is not specified.')
-    assert self.executable is not None
-    args = [self.executable] + scene_files
+    args = [self.exrpptm, '-c', '1.0', self._exr_file, self._exr_file + '.pp']
     logging.info('Running %s', ' '.join(args))
     subprocess.call(args)
+    args = [self.exrnormalize, self._exr_file + '.pp', self._exr_file + '.n']
+    logging.info('Running %s', ' '.join(args))
+    subprocess.call(args)
+    args = [self.exrtopng, self._exr_file + '.n', self.output_file]
+    logging.info('Running %s', ' '.join(args))
+    subprocess.call(args)
+
+  def batch_render(self, scene_files):
+    logging.info('Rendering %d files', len(scene_files))
+    for f in scene_files:
+      self._run_renderer(f)
