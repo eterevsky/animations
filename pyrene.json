@@ -3,5 +3,8 @@
     "luxconsole": "/home/aengus/lux-v1.5-x86_64-sse2-OpenCL/luxconsole",
     "slaves": []
   },
-  "renderer": "luxrender"
+  "pbrt": {
+    "executable": "/home/aengus/pbrt-v3/build/pbrt"
+  },
+  "renderer": "pbrt"
 }

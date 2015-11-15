@@ -6,7 +6,8 @@ import os
 import shutil
 import tempfile
 
-from .lux import LuxRenderer
+from . import lux
+from . import pbrt
 from .scene import Camera, Sphere, AreaLight, Scene
 
 
@@ -27,7 +28,9 @@ def create_renderer(renderer=None, config=None, **kwargs):
   logging.info('Creating a renderer %s with parameters %s', renderer, params)
 
   if renderer == 'luxrender':
-    return LuxRenderer(**params)
+    return lux.LuxRenderer(**params)
+  elif renderer == 'pbrt':
+    return pbrt.PbrtRenderer(**params)
   raise Exception('Unknown renderer type: {}'.format(renderer))
 
 

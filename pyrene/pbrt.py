@@ -17,18 +17,16 @@ _film = rman.Identifier(
         'xresolution': 'integer',
         'yresolution': 'integer',
         'cropwindow': 'float[4]',
-        'gamma': 'float',
-        'haltspp': 'integer',
         'filename': 'string'
     })
+
+
 
 _look_at = rman.Identifier('LookAt', positional=['point', 'point', 'vector'])
 
 _camera = rman.Identifier(
     'Camera', positional=['string'],
     named={
-        'hither': 'float',
-        'yon': 'float',
         'shutteropen': 'float',
         'shutterclose': 'float',
         'lensradius': 'float',
@@ -37,9 +35,15 @@ _camera = rman.Identifier(
         'autofocus': 'bool'
     })
 
+_sampler = rman.Identifier(
+    'Sampler', positional=['string'],
+    named={
+        'pixelsamples': 'integer',
+    })
+
 _area_light_source = rman.Identifier(
     'AreaLightSource', positional=['string'],
-    named={'L': 'color', 'power': 'float'})
+    named={'L': 'rgb'})
 
 _translate = rman.Identifier('Translate', positional=['vector'])
 
@@ -54,17 +58,15 @@ _shape = rman.Identifier(
     })
 
 
-class LuxRenderer(object):
-  def __init__(self, luxconsole=None, output_file=None, scene_file=None,
-               width=384, height=256, samples_per_pixel=10, slaves=None):
-    self.luxconsole = luxconsole
+class PbrtRenderer(object):
+  def __init__(self, executable=None, output_file=None, scene_file=None,
+               width=384, height=256, samples_per_pixel=None, slaves=None):
+    self.executable = executable
     self.output_file = output_file
     self.scene_file = scene_file
     self.width = width
     self.height = height
     self.samples_per_pixel = samples_per_pixel
-    self.slaves = slaves or []
-    logging.info('__init__ slaves: %s', slaves)
 
   def render(self, scene, generate_only=False):
     scene_file = self.scene_file or tempfile.mkstemp()[1]
@@ -82,7 +84,8 @@ class LuxRenderer(object):
     writer.begin_block('Attribute')
 
     if obj.light is not None:
-      writer.write(_area_light_source('area', L=obj.light.color, power=obj.light.power))
+      color = obj.light.color * obj.light.power
+      writer.write(_area_light_source('diffuse', L=obj.light.color))
 
     if isinstance(obj, scene.Sphere):
       if not np.array_equal(obj.center, ZERO):
@@ -93,22 +96,16 @@ class LuxRenderer(object):
 
     writer.end_block('Attribute')
 
-  def _stripped_output(self):
-    if self.output_file is None:
-      return None
-    if self.output_file.endswith('.png'):
-      return self.output_file[:-4]
-    else:
-      return self.output_file
-
   def _write_scene_file(self, scene, scene_file):
     with rman.FileWriter(scene_file) as writer:
       writer.write(_look_at(scene.camera.loc, scene.camera.to, scene.camera.up))
       writer.write(_film(
-          'fleximage',
+          'image',
           xresolution=self.width, yresolution=self.height,
-          haltspp=self.samples_per_pixel, filename=self._stripped_output()))
+          filename=self.output_file))
       writer.write(_camera('perspective', fov=scene.camera.fov))
+      if self.samples_per_pixel:
+        writer.write(_sampler('lowdiscrepancy', pixelsamples=self.samples_per_pixel))
 
       writer.begin_block('World')
       for obj in scene.objects:
@@ -117,32 +114,20 @@ class LuxRenderer(object):
 
   def _run_renderer(self, scene_file):
     logging.debug('Output file: `%s`', self.output_file)
-    if self.luxconsole is None:
+    if self.executable is None:
       logging.error(
-          'Trying to call LuxRender, but path to luxconsole is not specified.')
-    assert self.luxconsole is not None
-    args = [self.luxconsole, scene_file]
-    if self.output_file:
-      args.extend(['-o', os.path.abspath(self._stripped_output())])
-    if self.slaves:
-      for s in self.slaves:
-        args.extend(['-u', s])
+          'Trying to call pbrt, but path to the executable is not specified.')
+    assert self.executable is not None
+    args = [self.executable, scene_file]
     logging.info('Running %s', ' '.join(args))
     subprocess.call(args)
 
   def batch_render(self, scene_files):
     logging.info('Rendering %d files', len(scene_files))
-    if self.luxconsole is None:
+    if self.executable is None:
       logging.error(
-          'Trying to call LuxRender, but path to luxconsole is not specified.')
-    assert self.luxconsole is not None
-    list_file = tempfile.mkstemp()[1]
-    lf = open(list_file, 'w+')
-    lf.write('\n'.join(scene_files))
-    lf.close()
-    args = [self.luxconsole, '-L', list_file, '-i', '10']
-    if self.slaves:
-      for s in self.slaves:
-        args.extend(['-u', s])
+          'Trying to call pbrt, but path to the executable is not specified.')
+    assert self.executable is not None
+    args = [self.executable] + scene_files
     logging.info('Running %s', ' '.join(args))
     subprocess.call(args)

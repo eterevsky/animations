@@ -1,7 +1,11 @@
 import logging
 import math
+import os
 
 import pyrene
+
+
+# 20 minutes with Lux, 10 minutes with pbrt
 
 
 def gen_frame(t):
@@ -16,14 +20,15 @@ def gen_frame(t):
 
 
 def main():
-  config_path = os.path.dirname(os.path.realpath(__file__))
+  config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pyrene.json')
   with open(config_path) as config_file:
     config = config_file.read()
   renderer = pyrene.create_renderer(
+      renderer='pbrt',
       config=config, samples_per_pixel=20, width=1280, height=720)
   movie = pyrene.Movie(renderer=renderer, fps=60)
   movie.render_clip(0.0, 4.0, gen_frame)
-  movie.write('out/light2.mp4')
+  movie.write('out/lights_pbrt.mp4')
 
 
 if __name__ == '__main__':

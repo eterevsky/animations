@@ -1,6 +1,7 @@
 import logging
 import math
 import numpy as np
+import os
 
 import pyrene
 
@@ -105,14 +106,14 @@ def main():
   world.add_particle('sun', (0, 0, 0), (0, 0, 0), 1, 10, False)
   world.add_particle('camera', (0, -50, 0), (2, 0, 0), 0, 1, False)
 
-  config_path = os.path.dirname(os.path.realpath(__file__))
+  config_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'pyrene.json')
   with open(config_path) as config_file:
     config = config_file.read()
-  renderer = pyrene.create_renderer(
-      config=config, samples_per_pixel=200, width=1280, height=720)
+  renderer = pyrene.create_renderer(renderer='pbrt',
+      config=config, samples_per_pixel=150, width=1280, height=720)
 
-  movie = pyrene.Movie(renderer=renderer, fps=60)
-  movie.render_clip(0.0, 30.0, lambda t: gen_frame(world, t))
+  movie = pyrene.Movie(renderer=renderer, fps=30)
+  movie.render_clip(0.0, 5.0, lambda t: gen_frame(world, t))
   movie.write('out/nbodies1.mp4')
 
 
